@@ -1,0 +1,8 @@
+../Src/temp.c:9:6:set_pin_output	4	static
+../Src/temp.c:25:6:set_pin_input	4	static
+../Src/temp.c:34:6:DHT_start	8	static
+../Src/temp.c:44:8:DHT_check_response	8	static
+../Src/temp.c:59:9:DHT_read_byte	16	static
+../Src/temp.c:73:9:DHT_read	24	static
+../Src/temp.c:96:6:delay_us	16	static,ignoring_inline_asm
+../Src/temp.c:102:6:delay_ms	16	static
