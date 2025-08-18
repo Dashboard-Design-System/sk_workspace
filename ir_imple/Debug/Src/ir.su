@@ -1,0 +1,4 @@
+../Src/ir.c:12:6:ir_init	4	static
+../Src/ir.c:33:6:led_on	4	static
+../Src/ir.c:38:6:led_off	4	static
+../Src/ir.c:43:10:ir_detect	4	static

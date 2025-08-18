@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Car Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00e0ff; /* A bright cyan-blue */
+            --secondary-color: #f06a00; /* A vibrant orange */
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-color: #f0f0f0;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            position: relative;
+        }
+
+        .glow-text-primary {
+            color: var(--primary-color);
+            text-shadow: 0 0 8px rgba(0, 224, 255, 0.6);
+        }
+
+        .glow-text-secondary {
+            color: var(--secondary-color);
+            text-shadow: 0 0 8px rgba(240, 106, 0, 0.6);
+        }
+
+        /* Gauge styles */
+        .gauge-ring {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .gauge-fill-primary {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 12px solid #4a4a4a;
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            border-right-color: var(--primary-color);
+            border-bottom-color: #4a4a4a;
+            border-left-color: #4a4a4a;
+            transform: rotate(135deg);
+        }
+
+        .gauge-fill-secondary {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 12px solid #4a4a4a;
+            border-radius: 50%;
+            border-top-color: #4a4a4a;
+            border-right-color: #4a4a4a;
+            border-bottom-color: var(--secondary-color);
+            border-left-color: var(--secondary-color);
+            transform: rotate(135deg);
+        }
+        
+        .gauge-mask {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 12px solid var(--card-bg);
+            border-radius: 50%;
+            transform: rotate(-45deg);
+            clip-path: inset(0 0 50% 0);
+        }
+
+        .level-bar-container {
+            height: 1.5rem;
+            background-color: #4a4a4a;
+            border-radius: 9999px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .level-bar-fill {
+            height: 100%;
+            background-image: linear-gradient(to right, #00e0ff, #f06a00);
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-8">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-6xl">
+        <div class="card flex flex-col justify-center items-center col-span-1 p-8">
+            <h2 class="text-xl font-medium text-gray-400 mb-4">Speed</h2>
+            <p id="speed-value" class="text-8xl font-bold glow-text-primary">--</p>
+            <p class="text-3xl font-light glow-text-primary mt-2">km/h</p>
+        </div>
+
+        <div class="card col-span-1 lg:col-span-2 flex flex-col items-center justify-between p-8">
+            <h2 class="text-xl font-medium text-gray-400 mb-6">Engine Temperature</h2>
+            <div class="gauge-ring">
+                <div class="gauge-fill-primary"></div>
+                <div class="gauge-fill-secondary" id="temperature-gauge"></div>
+                <div class="z-10">
+                    <p id="temperature-value" class="text-6xl font-bold glow-text-primary">--</p>
+                    <p class="text-xl font-light glow-text-primary">°C</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-400 mt-6">Live diagnostics active</p>
+        </div>
+
+        <div class="card lg:col-span-3">
+            <h2 class="text-xl font-medium text-gray-400 mb-6 text-center">Fuel/Battery Level</h2>
+            <div class="level-bar-container w-full">
+                <div id="level-bar" class="level-bar-fill" style="width: 0%;"></div>
+            </div>
+            <p id="level-value" class="text-xl font-light mt-4 glow-text-primary text-center">--%</p>
+        </div>
+    </div>
+
+    <script>
+        async function fetchSensorData() {
+            try {
+                const response = await fetch('http://10.91.73.251:4000/api/sensors');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                const temperatureValue = document.getElementById('temperature-value');
+                const speedValue = document.getElementById('speed-value');
+                const levelValue = document.getElementById('level-value');
+                const levelBar = document.getElementById('level-bar');
+                const temperatureGauge = document.getElementById('temperature-gauge');
+
+                if (data.temperature !== undefined) {
+                    temperatureValue.textContent = data.temperature.toFixed(1);
+                    // Map temperature (0-100) to gauge rotation (0-180deg) for a half-circle effect
+                    const tempRotation = Math.min(Math.max(data.temperature, 0), 100) * 1.8;
+                    temperatureGauge.style.transform = `rotate(${135 + tempRotation}deg)`;
+                } else {
+                    temperatureValue.textContent = '--';
+                }
+
+                if (data.speed !== undefined) {
+                    speedValue.textContent = data.speed.toFixed(1);
+                } else {
+                    speedValue.textContent = '--';
+                }
+
+                if (data.level !== undefined) {
+                    levelValue.textContent = `${data.level.toFixed(0)}%`;
+                    const levelPercentage = Math.min(Math.max(data.level, 0), 100);
+                    levelBar.style.width = `${levelPercentage}%`;
+                } else {
+                    levelValue.textContent = '--%';
+                    levelBar.style.width = '0%';
+                }
+            } catch (error) {
+                console.error('Could not fetch sensor data:', error);
+            }
+        }
+
+        fetchSensorData();
+        setInterval(fetchSensorData, 1000);
+    </script>
+</body>
+</html>

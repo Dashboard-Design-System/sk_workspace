@@ -1,0 +1,4 @@
+../Src/ir.c:12:6:ir_init	1
+../Src/ir.c:33:6:led_on	1
+../Src/ir.c:38:6:led_off	1
+../Src/ir.c:43:10:ir_detect	1
